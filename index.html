@@ -1,0 +1,419 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OBRAX | Plataforma de serviços</title>
+<style>
+:root{--navy:#0b2447;--blue:#1769cf;--light:#eef3fa;--text:#1e293b;--muted:#64748b;--green:#16834a;--red:#b83232}
+*{box-sizing:border-box}
+body{margin:0;background:#f3f6fb;color:var(--text);font-family:Arial,sans-serif;line-height:1.5}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer;border:0;border-radius:12px;padding:12px 17px;font-weight:700}
+.primary{background:var(--blue);color:white}
+.secondary{background:#e8eef8;color:var(--navy)}
+.danger{background:#fff0f0;color:var(--red)}
+header{background:linear-gradient(120deg,#071a34,#17447c);color:white;padding:25px 18px}
+.header-inner{max-width:1100px;margin:auto}
+.logo{font-size:27px;font-weight:900;letter-spacing:2px}
+header p{margin:5px 0 0;color:#d8e5f8}
+main{max-width:1100px;margin:22px auto;padding:0 14px}
+.hero{background:linear-gradient(130deg,#0b2447,#1d5799);color:white;padding:30px 22px;border-radius:22px;margin-bottom:20px}
+.hero h1{font-size:clamp(27px,5vw,42px);margin:8px 0}
+.hero p{color:#dce9f8;max-width:650px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:15px}
+.card{background:white;padding:20px;border-radius:18px;box-shadow:0 5px 22px #0b244710;margin-bottom:15px}
+.card h2,.card h3{margin-top:0}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
+.muted{color:var(--muted);font-size:14px}
+.tag{display:inline-block;background:#eaf1fb;color:#17447c;padding:5px 10px;border-radius:20px;font-size:12px;margin:3px}
+.field{margin:13px 0}
+label{display:block;font-weight:700;margin-bottom:6px}
+input,select,textarea{width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:11px;background:white;color:var(--text)}
+textarea{min-height:90px;resize:vertical}
+input[type=checkbox],input[type=radio]{width:auto}
+.checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px}
+.check{background:#f1f5f9;padding:10px;border-radius:10px;font-size:14px}
+.check label{display:flex;align-items:center;gap:8px;margin:0}
+.hidden{display:none!important}
+.modal-bg{position:fixed;inset:0;background:#07182dcc;display:none;align-items:center;justify-content:center;padding:12px;z-index:20}
+.modal{background:white;width:min(680px,100%);max-height:92vh;overflow:auto;border-radius:22px;padding:22px}
+.modal-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.modal-head h2{margin:0}
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:10px;margin-top:12px}
+.photo-grid img{width:100%;height:110px;object-fit:cover;border-radius:10px}
+.profile-photo{width:100%;height:150px;object-fit:cover;border-radius:12px}
+hr{border:0;border-top:1px solid #e2e8f0;margin:18px 0}
+.status{font-size:12px;padding:5px 9px;border-radius:20px;background:#fff3d6;color:#805500}
+.status.ok{background:#e1f6e9;color:#146c3a}
+.status.off{background:#fee2e2;color:#991b1b}
+footer{text-align:center;padding:25px;color:var(--muted);font-size:13px}
+.small-btn{padding:8px 11px;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+ <div class="header-inner">
+  <div class="logo">OBRAX</div>
+  <p>Plataforma de serviços, obras e oportunidades</p>
+ </div>
+</header>
+
+<main>
+ <section id="home">
+  <div class="hero">
+   <span class="tag">SERVIÇOS E OPORTUNIDADES</span>
+   <h1>Sua obra começa aqui.</h1>
+   <p>Encontre profissionais, solicite orçamentos e acompanhe seus serviços em um só lugar.</p>
+   <div class="actions">
+    <button class="primary" onclick="openRegister('cliente')">Sou cliente</button>
+    <button class="secondary" onclick="openRegister('profissional')">Sou profissional</button>
+    <button class="secondary" onclick="openRegister('ajudante')">Sou ajudante</button>
+    <button class="secondary" onclick="openLogin()">Entrar</button>
+   </div>
+  </div>
+  <div class="grid">
+   <div class="card"><h3>Para clientes</h3><p>Solicite serviços, receba propostas e acompanhe suas obras.</p></div>
+   <div class="card"><h3>Para profissionais</h3><p>Mostre seus trabalhos, receba pedidos e envie orçamentos.</p></div>
+   <div class="card"><h3>Para ajudantes</h3><p>Cadastre suas habilidades e receba convites de profissionais.</p></div>
+  </div>
+  <div class="card">
+   <h3>Conheça os profissionais</h3>
+   <p class="muted">Somente perfis completos e aprovados pelo painel MASTER aparecem nesta área.</p>
+   <div id="publicProfessionals" class="grid"></div>
+  </div>
+ </section>
+
+ <section id="dashboard" class="hidden">
+  <div class="card">
+   <div class="modal-head">
+    <div><span class="muted" id="roleLabel"></span><h2 id="welcome"></h2></div>
+    <button class="danger" onclick="logout()">Sair</button>
+   </div>
+   <div id="dashboardContent"></div>
+  </div>
+ </section>
+</main>
+
+<div class="modal-bg" id="registerModal">
+ <div class="modal">
+  <div class="modal-head"><h2 id="registerTitle">Criar conta</h2><button class="danger" onclick="closeModal('registerModal')">Fechar</button></div>
+  <div class="actions" style="margin-bottom:15px">
+   <button class="secondary" onclick="setRole('cliente')">Cliente</button>
+   <button class="secondary" onclick="setRole('profissional')">Profissional</button>
+   <button class="secondary" onclick="setRole('ajudante')">Ajudante</button>
+  </div>
+  <form id="registerForm">
+   <input type="hidden" id="regRole" value="cliente">
+   <div class="field"><label>Nome completo</label><input id="regName" required placeholder="Seu nome"></div>
+   <div class="field"><label>E-mail</label><input id="regEmail" type="email" required placeholder="voce@email.com"></div>
+   <div class="field"><label>Senha de demonstração</label><input id="regPassword" type="password" required minlength="6" placeholder="Crie uma senha"></div>
+   <div class="field"><label>Cidade / região onde mora ou trabalha</label><input id="regRegion" required placeholder="Ex.: São Gonçalo - RJ"></div>
+
+   <div id="professionalFields" class="hidden">
+    <hr>
+    <h3>Qual é o seu tipo de profissional?</h3>
+    <p class="muted">Escolha todas as atividades que você realmente realiza. Não basta apenas marcar que é profissional.</p>
+    <div class="checks" id="specialtyChecks"></div>
+    <div class="field"><label>Conte sobre sua experiência e seus serviços</label><textarea id="regBio" placeholder="Descreva sua experiência, serviços e região de atendimento"></textarea></div>
+    <div class="field"><label>Fotos dos trabalhos que você já realizou (obrigatório)</label><input id="regPortfolio" type="file" accept="image/*" multiple><p class="muted">Envie pelo menos 3 fotos próprias de serviços realizados. Elas serão exibidas no seu perfil.</p><div id="portfolioPreview" class="photo-grid"></div></div>
+    <div class="field"><label>Verificação de identidade (opcional nesta demonstração)</label>
+     <select id="regVerification" onchange="showVerification()">
+      <option value="later">Fazer depois</option>
+      <option value="document">Enviar documento - frente e verso</option>
+      <option value="face">Enviar foto facial</option>
+     </select>
+    </div>
+    <div id="documentFields" class="hidden">
+     <div class="field"><label>Documento - frente</label><input type="file" id="docFront" accept="image/*"></div>
+     <div class="field"><label>Documento - verso</label><input type="file" id="docBack" accept="image/*"></div>
+    </div>
+    <div id="faceFields" class="hidden">
+     <div class="field"><label>Foto facial</label><input type="file" id="facePhoto" accept="image/*"></div>
+    </div>
+    <p class="muted">Enviar arquivos nesta demonstração não significa que a identidade foi verificada. O selo de verificado só poderá ser concedido após validação real.</p>
+   </div>
+
+   <div id="helperFields" class="hidden">
+    <hr><h3>Perfil de ajudante</h3>
+    <div class="field"><label>Habilidades</label><textarea id="helperSkills" placeholder="Ex.: carregar materiais, preparar massa, auxiliar pedreiro"></textarea></div>
+    <div class="field"><label>Valor da diária que você cobra (R$)</label><input id="helperRate" type="number" min="1" placeholder="Ex.: 100"></div>
+   </div>
+   <button class="primary" style="width:100%" type="submit">Criar conta</button>
+   <p class="muted">Versão de demonstração: os dados ficam salvos somente neste navegador. Não use senhas verdadeiras nem documentos pessoais.</p>
+  </form>
+ </div>
+</div>
+
+<div class="modal-bg" id="loginModal">
+ <div class="modal">
+  <div class="modal-head"><h2>Entrar no OBRAX</h2><button class="danger" onclick="closeModal('loginModal')">Fechar</button></div>
+  <form id="loginForm">
+   <div class="field"><label>E-mail</label><input id="loginEmail" type="email" required></div>
+   <div class="field"><label>Senha</label><input id="loginPassword" type="password" required></div>
+   <button class="primary" style="width:100%">Entrar</button>
+  </form>
+  <hr>
+  <p class="muted">Demonstração do painel MASTER: use o e-mail <b>master@obrax.demo</b> e a senha <b>obrax-demo</b>.</p>
+ </div>
+</div>
+
+<div class="modal-bg" id="quoteModal">
+ <div class="modal">
+  <div class="modal-head"><h2>Enviar orçamento</h2><button class="danger" onclick="closeModal('quoteModal')">Fechar</button></div>
+  <form id="quoteForm">
+   <input type="hidden" id="quoteJobId">
+   <div class="field"><label>Valor do serviço (R$)</label><input id="quotePrice" type="number" min="1" required></div>
+   <div class="field"><label>Prazo estimado</label><input id="quoteDeadline" required placeholder="Ex.: 5 dias"></div>
+   <div class="field"><label>Detalhes do orçamento</label><textarea id="quoteDetails" required></textarea></div>
+   <button class="primary" style="width:100%">Enviar proposta</button>
+  </form>
+ </div>
+</div>
+
+<footer>OBRAX — Serviços e oportunidades para sua obra.</footer>
+
+<script>
+const KEY="obrax_consolidado_v1";
+const specialties=[
+"Pedreiro","Eletricista","Encanador","Pintor","Ladrilheiro","Gesseiro",
+"Soldador","Carpinteiro","Marceneiro","Serralheiro","Azulejista",
+"Telhadista","Jardineiro","Impermeabilizador","Instalador","Reformas","Outro"
+];
+let db=loadDB(),currentUser=null,portfolioFiles=[];
+
+function loadDB(){
+ try{return JSON.parse(localStorage.getItem(KEY))||{users:[],jobs:[],messages:[],reports:[],settings:{commission:15,helperMargin:20}}}
+ catch(e){return {users:[],jobs:[],messages:[],reports:[],settings:{commission:15,helperMargin:20}}}
+}
+function saveDB(){localStorage.setItem(KEY,JSON.stringify(db))}
+function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function openRegister(role){setRole(role);document.getElementById("registerModal").style.display="flex"}
+function openLogin(){document.getElementById("loginModal").style.display="flex"}
+function closeModal(id){document.getElementById(id).style.display="none"}
+function setRole(role){
+ document.getElementById("regRole").value=role;
+ document.getElementById("registerTitle").textContent="Criar conta de "+role;
+ document.getElementById("professionalFields").classList.toggle("hidden",role!=="profissional");
+ document.getElementById("helperFields").classList.toggle("hidden",role!=="ajudante");
+}
+function buildSpecialties(){
+ document.getElementById("specialtyChecks").innerHTML=specialties.map((s,i)=>`<div class="check"><label><input type="checkbox" name="specialty" value="${esc(s)}"> ${esc(s)}</label></div>`).join("");
+}
+function showVerification(){
+ const v=document.getElementById("regVerification").value;
+ document.getElementById("documentFields").classList.toggle("hidden",v!=="document");
+ document.getElementById("faceFields").classList.toggle("hidden",v!=="face");
+}
+document.getElementById("regPortfolio").addEventListener("change",async e=>{
+ const files=[...e.target.files];
+ if(files.length>8){alert("Envie no máximo 8 fotos nesta demonstração.");e.target.value="";return}
+ portfolioFiles=[];
+ for(const file of files){
+  if(!file.type.startsWith("image/"))continue;
+  portfolioFiles.push(await compressImage(file));
+ }
+ document.getElementById("portfolioPreview").innerHTML=portfolioFiles.map(src=>`<img src="${src}" alt="Foto de trabalho">`).join("");
+});
+function compressImage(file){
+ return new Promise(resolve=>{
+  const reader=new FileReader();
+  reader.onload=()=>{
+   const img=new Image();
+   img.onload=()=>{
+    const canvas=document.createElement("canvas"),max=850;
+    const scale=Math.min(1,max/Math.max(img.width,img.height));
+    canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);
+    canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
+    resolve(canvas.toDataURL("image/jpeg",.68));
+   };
+   img.onerror=()=>resolve(reader.result);
+   img.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+ });
+}
+async function readOptionalImage(inputId){
+ const f=document.getElementById(inputId).files[0];
+ return f?await compressImage(f):"";
+}
+document.getElementById("registerForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const role=document.getElementById("regRole").value;
+ const email=document.getElementById("regEmail").value.trim().toLowerCase();
+ if(db.users.some(u=>u.email===email)){alert("Este e-mail já está cadastrado.");return}
+ const user={
+  id:id(),role,name:document.getElementById("regName").value.trim(),
+  email,password:document.getElementById("regPassword").value,
+  region:document.getElementById("regRegion").value.trim(),
+  status:"active",createdAt:new Date().toISOString()
+ };
+ if(role==="profissional"){
+  user.specialties=[...document.querySelectorAll('input[name="specialty"]:checked')].map(x=>x.value);
+  user.bio=document.getElementById("regBio").value.trim();
+  user.portfolio=portfolioFiles;
+  user.approved=false;
+  user.verificationChoice=document.getElementById("regVerification").value;
+  user.verificationStatus="pending";
+  if(user.specialties.length===0){alert("Escolha pelo menos uma profissão ou especialidade.");return}
+  if(user.portfolio.length<3){alert("Envie pelo menos 3 fotos dos seus trabalhos para criar o perfil profissional.");return}
+  if(user.verificationChoice==="document"){
+   user.docFront=await readOptionalImage("docFront");user.docBack=await readOptionalImage("docBack");
+   if(!user.docFront||!user.docBack){alert("Para enviar documento, selecione a frente e o verso.");return}
+  }
+  if(user.verificationChoice==="face"){
+   user.facePhoto=await readOptionalImage("facePhoto");
+   if(!user.facePhoto){alert("Selecione a foto facial.");return}
+  }
+ }else if(role==="ajudante"){
+  user.skills=document.getElementById("helperSkills").value.trim();
+  user.dailyRate=Number(document.getElementById("helperRate").value);
+  if(!user.skills||!user.dailyRate||user.dailyRate<=0){alert("Informe suas habilidades e o valor da diária.");return}
+ }
+ db.users.push(user);saveDB();
+ closeModal("registerModal");e.target.reset();portfolioFiles=[];buildSpecialties();showVerification();
+ alert(role==="profissional"?"Cadastro criado! Seu perfil ficará aguardando aprovação do MASTER antes de aparecer para clientes.":"Cadastro criado com sucesso!");
+ loginAs(user);
+});
+document.getElementById("loginForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ const email=document.getElementById("loginEmail").value.trim().toLowerCase();
+ const pass=document.getElementById("loginPassword").value;
+ if(email==="master@obrax.demo"&&pass==="obrax-demo"){
+  currentUser={id:"master",name:"Administrador MASTER",role:"master"};closeModal("loginModal");showDashboard();return;
+ }
+ const user=db.users.find(u=>u.email===email&&u.password===pass);
+ if(!user){alert("E-mail ou senha incorretos.");return}
+ if(user.status==="blocked"){alert("Esta conta está bloqueada. Entre em contato com o suporte.");return}
+ closeModal("loginModal");loginAs(user);
+});
+function loginAs(user){currentUser=user;showDashboard()}
+function logout(){currentUser=null;document.getElementById("dashboard").classList.add("hidden");document.getElementById("home").classList.remove("hidden");renderPublicProfessionals()}
+function showDashboard(){
+ document.getElementById("home").classList.add("hidden");
+ document.getElementById("dashboard").classList.remove("hidden");
+ document.getElementById("welcome").textContent="Olá, "+currentUser.name;
+ document.getElementById("roleLabel").textContent="PAINEL "+currentUser.role.toUpperCase();
+ const box=document.getElementById("dashboardContent");
+ if(currentUser.role==="cliente")clientDashboard(box);
+ if(currentUser.role==="profissional")professionalDashboard(box);
+ if(currentUser.role==="ajudante")helperDashboard(box);
+ if(currentUser.role==="master")masterDashboard(box);
+}
+function clientDashboard(box){
+ const mine=db.jobs.filter(j=>j.clientId===currentUser.id);
+ box.innerHTML=`
+ <div class="card"><h3>Solicitar um serviço</h3>
+ <form id="jobForm">
+ <div class="field"><label>Tipo de serviço</label><select id="jobType" required><option value="">Escolha</option>${specialties.map(s=>`<option>${esc(s)}</option>`).join("")}</select></div>
+ <div class="field"><label>Local do serviço</label><input id="jobLocation" required placeholder="Endereço ou bairro"></div>
+ <div class="field"><label>Descreva o que precisa</label><textarea id="jobDescription" required></textarea></div>
+ <div class="field"><label>Quando deseja começar?</label><input id="jobDate" type="date"></div>
+ <div class="field"><label>Orçamento previsto (R$) - opcional</label><input id="jobBudget" type="number" min="0"></div>
+ <button class="primary">Publicar pedido</button></form></div>
+ <h3>Meus pedidos</h3>${mine.length?mine.map(jobCard).join(""):"<p class='muted'>Você ainda não publicou pedidos.</p>"}
+ <h3>Profissionais disponíveis</h3><div class="grid">${approvedProfessionals().map(proCard).join("")||"<p class='muted'>Ainda não há profissionais aprovados.</p>"}</div>`;
+ document.getElementById("jobForm").onsubmit=e=>{
+  e.preventDefault();
+  db.jobs.push({id:id(),clientId:currentUser.id,clientName:currentUser.name,type:jobType.value,location:jobLocation.value,description:jobDescription.value,date:jobDate.value,budget:Number(jobBudget.value)||0,status:"Aberto",quotes:[],createdAt:new Date().toISOString()});
+  saveDB();clientDashboard(box);alert("Pedido publicado!");
+ };
+}
+function jobCard(j){
+ return `<div class="card"><b>${esc(j.type)}</b> <span class="status">${esc(j.status)}</span><p>${esc(j.description)}</p><p class="muted">${esc(j.location)} · ${j.date?esc(j.date):"Data não definida"}</p>
+ ${j.quotes.map(q=>`<div class="card"><b>Proposta: R$ ${Number(q.price).toFixed(2)}</b><p>${esc(q.details)}</p><p>Prazo: ${esc(q.deadline)}</p><button class="primary small-btn" onclick="acceptQuote('${j.id}','${q.id}')">Aceitar proposta</button></div>`).join("")}
+ </div>`;
+}
+function approvedProfessionals(){return db.users.filter(u=>u.role==="profissional"&&u.approved&&u.status==="active")}
+function proCard(u){
+ return `<div class="card">${u.portfolio?.[0]?`<img class="profile-photo" src="${u.portfolio[0]}">`:""}
+ <h3>${esc(u.name)}</h3><p>${(u.specialties||[]).map(s=>`<span class="tag">${esc(s)}</span>`).join("")}</p>
+ <p class="muted">${esc(u.region)}</p><p>${esc(u.bio||"Profissional cadastrado no OBRAX.")}</p>
+ <button class="secondary small-btn" onclick="viewProfessional('${u.id}')">Ver perfil</button></div>`;
+}
+function viewProfessional(userId){
+ const u=db.users.find(x=>x.id===userId);if(!u)return;
+ alert("Perfil: "+u.name+"\nEspecialidades: "+(u.specialties||[]).join(", ")+"\nRegião: "+u.region+"\nFotos disponíveis no perfil.");
+}
+function professionalDashboard(box){
+ const jobs=db.jobs.filter(j=>j.status==="Aberto"||j.quotes.some(q=>q.professionalId===currentUser.id));
+ const mine=db.jobs.filter(j=>j.quotes.some(q=>q.professionalId===currentUser.id));
+ box.innerHTML=`
+ <div class="card"><h3>Meu perfil profissional</h3><p><b>Especialidades:</b> ${(currentUser.specialties||[]).map(esc).join(", ")}</p>
+ <p><b>Região:</b> ${esc(currentUser.region)}</p><p><b>Descrição:</b> ${esc(currentUser.bio||"Não informada")}</p>
+ <p><b>Fotos do portfólio:</b> ${currentUser.portfolio?.length||0}</p>
+ <span class="status ${currentUser.approved?"ok":""}">${currentUser.approved?"Aprovado pelo MASTER":"Aguardando aprovação do MASTER"}</span>
+ <div class="photo-grid">${(currentUser.portfolio||[]).map(p=>`<img src="${p}">`).join("")}</div></div>
+ <h3>Pedidos de serviço</h3>${currentUser.approved?jobs.map(j=>`<div class="card"><b>${esc(j.type)}</b><p>${esc(j.description)}</p><p class="muted">${esc(j.location)}</p><button class="primary small-btn" onclick="openQuote('${j.id}')">Enviar orçamento</button></div>`).join("")||"<p class='muted'>Nenhum pedido disponível.</p>":"<p class='muted'>Seu perfil precisa ser aprovado pelo MASTER antes de receber pedidos.</p>"}
+ <h3>Minhas propostas</h3>${mine.map(jobCard).join("")||"<p class='muted'>Você ainda não enviou propostas.</p>"}
+ <div class="card"><h3>Encontrar ajudantes</h3><p class="muted">Você pode convidar ajudantes para conversar e combinar serviços.</p>${db.users.filter(u=>u.role==="ajudante"&&u.status==="active").map(h=>`<p><b>${esc(h.name)}</b> · ${esc(h.region)} · Diária informada: R$ ${Number(h.dailyRate).toFixed(2)} <button class="secondary small-btn" onclick="sendInvite('${h.id}')">Convidar</button></p>`).join("")||"Nenhum ajudante cadastrado."}</div>`;
+}
+function openQuote(jobId){document.getElementById("quoteJobId").value=jobId;document.getElementById("quoteModal").style.display="flex"}
+document.getElementById("quoteForm").addEventListener("submit",e=>{
+ e.preventDefault();const j=db.jobs.find(x=>x.id===quoteJobId.value);if(!j)return;
+ j.quotes.push({id:id(),professionalId:currentUser.id,professionalName:currentUser.name,price:Number(quotePrice.value),deadline:quoteDeadline.value,details:quoteDetails.value});
+ saveDB();closeModal("quoteModal");showDashboard();alert("Orçamento enviado.");
+});
+function acceptQuote(jobId,quoteId){
+ const j=db.jobs.find(x=>x.id===jobId);if(!j||j.clientId!==currentUser.id)return;
+ const q=j.quotes.find(x=>x.id===quoteId);if(!q)return;
+ j.acceptedQuote=quoteId;j.professionalId=q.professionalId;j.status="Proposta aceita";
+ saveDB();showDashboard();alert("Proposta aceita. O pagamento ainda não está habilitado nesta versão.");
+}
+function helperDashboard(box){
+ box.innerHTML=`<div class="card"><h3>Meu perfil de ajudante</h3><p><b>Habilidades:</b> ${esc(currentUser.skills)}</p><p><b>Região:</b> ${esc(currentUser.region)}</p><p><b>Minha diária:</b> R$ ${Number(currentUser.dailyRate).toFixed(2)}</p></div>
+ <h3>Convites recebidos</h3>${db.messages.filter(m=>m.to===currentUser.id&&m.type==="invite").map(m=>`<div class="card"><p>${esc(m.text)}</p><button class="secondary small-btn" onclick="replyInvite('${m.id}')">Aceitar convite</button></div>`).join("")||"<p class='muted'>Você ainda não recebeu convites.</p>"}
+ <h3>Meus registros</h3><p class="muted">Histórico de convites e combinações ficará disponível aqui. Pagamentos ainda não estão ativos.</p>`;
+}
+function sendInvite(helperId){
+ const h=db.users.find(u=>u.id===helperId);
+ db.messages.push({id:id(),from:currentUser.id,to:helperId,type:"invite",text:currentUser.name+" convidou você para conversar sobre uma oportunidade de trabalho."});
+ saveDB();alert("Convite enviado para "+h.name+".");
+}
+function replyInvite(messageId){const m=db.messages.find(x=>x.id===messageId);if(m){m.replied=true;saveDB();alert("Convite marcado como aceito na demonstração.");showDashboard()}}
+function masterDashboard(box){
+ box.innerHTML=`
+ <div class="grid">
+  <div class="card"><h3>Usuários</h3><h2>${db.users.length}</h2></div>
+  <div class="card"><h3>Pedidos</h3><h2>${db.jobs.length}</h2></div>
+  <div class="card"><h3>Comissão OBRAX</h3><h2>${db.settings.commission}%</h2></div>
+  <div class="card"><h3>Margem por diária</h3><h2>R$ ${db.settings.helperMargin}</h2></div>
+ </div>
+ <div class="card"><h3>Configurações comerciais</h3>
+ <div class="field"><label>Comissão do profissional (%)</label><input id="masterCommission" type="number" min="0" max="100" value="${db.settings.commission}"></div>
+ <div class="field"><label>Margem OBRAX por diária de ajudante (R$)</label><input id="masterMargin" type="number" min="0" value="${db.settings.helperMargin}"></div>
+ <button class="primary" onclick="saveSettings()">Salvar configurações</button>
+ <p class="muted">Exemplo: serviço de R$ 1.200, comissão de 15% = R$ 180 para OBRAX e R$ 1.020 para o profissional, antes de taxas e tributos.</p></div>
+ <div class="card"><h3>Profissionais aguardando aprovação</h3>
+ ${db.users.filter(u=>u.role==="profissional"&&!u.approved).map(u=>`<div class="card"><b>${esc(u.name)}</b><p>${(u.specialties||[]).map(esc).join(", ")}</p><p>${esc(u.region)}</p><div class="photo-grid">${(u.portfolio||[]).map(p=>`<img src="${p}">`).join("")}</div><button class="primary small-btn" onclick="approveProfessional('${u.id}')">Aprovar perfil</button><button class="danger small-btn" onclick="rejectProfessional('${u.id}')">Reprovar</button></div>`).join("")||"<p class='muted'>Nenhum profissional aguardando aprovação.</p>"}
+ </div>
+ <div class="card"><h3>Gerenciar usuários</h3>${db.users.map(u=>`<p><b>${esc(u.name)}</b> — ${esc(u.role)} — ${esc(u.email)} — ${u.status}
+ <button class="secondary small-btn" onclick="toggleUser('${u.id}')">${u.status==="blocked"?"Reativar":"Bloquear"}</button></p>`).join("")||"Nenhum usuário."}</div>
+ <div class="card"><h3>Todos os pedidos</h3>${db.jobs.map(jobCard).join("")||"Nenhum pedido."}</div>
+ <div class="card"><h3>Relatórios e denúncias</h3><p class="muted">Não há denúncias registradas nesta demonstração.</p></div>
+ <div class="card"><h3>Segurança</h3><p class="muted">Este painel é apenas demonstrativo. A senha MASTER não é uma proteção segura para publicação. A versão real precisará de autenticação no servidor, controle de acesso e registro de ações administrativas.</p></div>`;
+}
+function saveSettings(){
+ db.settings.commission=Math.max(0,Math.min(100,Number(masterCommission.value)||0));
+ db.settings.helperMargin=Math.max(0,Number(masterMargin.value)||0);
+ saveDB();showDashboard();alert("Configurações salvas.");
+}
+function approveProfessional(userId){
+ const u=db.users.find(x=>x.id===userId);if(u){u.approved=true;u.approvedAt=new Date().toISOString();saveDB();showDashboard();renderPublicProfessionals()}
+}
+function rejectProfessional(userId){
+ const u=db.users.find(x=>x.id===userId);if(u){u.approved=false;u.status="blocked";saveDB();showDashboard()}
+}
+function toggleUser(userId){
+ const u=db.users.find(x=>x.id===userId);if(u){u.status=u.status==="blocked"?"active":"blocked";saveDB();showDashboard()}
+}
+function renderPublicProfessionals(){
+ const el=document.getElementById("publicProfessionals");if(!el)return;
+ el.innerHTML=approvedProfessionals().map(proCard).join("")||"<p class='muted'>Ainda não há profissionais aprovados.</p>";
+}
+buildSpecialties();renderPublicProfessionals();
+</script>
+</body>
+</html>
